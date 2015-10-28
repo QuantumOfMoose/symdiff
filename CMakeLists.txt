@@ -1,4 +1,10 @@
+cmake_minimum_required(VERSION 3.0)
 PROJECT (SYMDIFF)
+
+include(GNUInstallDirs)
+include(generate.cmake)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 SET (SUBDIRS
     src
@@ -11,10 +17,19 @@ MESSAGE("Hostname: ${HOSTNAME}")
 ADD_DEFINITIONS(-DSYMDIFF_VERSION_STRING="\\"0.00\\""  -DSYMDIFF_COPYRIGHT_YEAR="\\"2010\\"")
 
 
+
 set(PROJECT_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(PROJECT_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(PROJECT_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/lib)
 set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+
+
+find_package(PythonLibs REQUIRED)
+find_package(TCL REQUIRED)
+
+
+find_program(FLEX flex)
+find_program(BISON bison)
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ADD_DEFINITIONS(-Wall -DTCL_THREADS -DUSE_TCL_STUBS -fvisibility=hidden)
@@ -30,16 +45,12 @@ IF (WIN32)
 ADD_DEFINITIONS(-DTCL_THREADS -DUSE_TCL_STUBS)
 ADD_DEFINITIONS(-DSTATIC_BUILD -D_USE_MATH_DEFINES)
 SET (CMAKE_CXX_WARNING_LEVEL 4)
-SET (FLEX "C:/cygwin/bin/flex.exe")
-SET (BISON "C:/cygwin/bin/bison.exe")
 # warning C4251 for dll exports
 # warning C4005 concerning macro redefines in stdint.h
 # warning C4996: 'isatty': The POSIX name for this item is deprecated
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:strict /wd4251 /wd4005 /wd4996")
 SET (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /fp:strict /wd4251 /wd4005 /wd4996")
 ELSE (WIN32)
-SET (FLEX flex)
-SET (BISON bison)
 ENDIF (WIN32)
 
 INCLUDE(${SYMDIFF_CONFIG}.cmake OPTIONAL)
@@ -48,4 +59,9 @@ ENABLE_TESTING()
 FOREACH (SUB ${SUBDIRS})
     ADD_SUBDIRECTORY(${SUB})
 ENDFOREACH (SUB ${SUBDIRS})
+
+#pre-written headers
+install(FILES include/EngineAPI.hh include/import.hh include/parseexpr.hh
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/symdiff)
+
 

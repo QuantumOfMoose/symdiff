@@ -1,5 +1,5 @@
-INCLUDE_DIRECTORIES (
-)
+#INCLUDE_DIRECTORIES (
+#)
 
 SET (MC_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/mcParser.cc
@@ -39,50 +39,11 @@ INCLUDE_DIRECTORIES (
 ADD_LIBRARY(symdiff SHARED ${CXX_SRCS} ${MC_SRCS})
 ADD_LIBRARY(symdiff_static STATIC ${CXX_SRCS} ${MC_SRCS})
 
+flex_generate(mcScanner "${CMAKE_CURRENT_BINARY_DIR}/mcParser.hh;mcTest.hh;EquationObject.hh;UserFunc.hh" mc)
 
-IF (WIN32)
-SET_SOURCE_FILES_PROPERTIES(mcScanner.cc mcParser.cc PROPERTIES GENERATED TRUE)
-ELSE (WIN32)
-SET_SOURCE_FILES_PROPERTIES(mcScanner.cc mcParser.cc PROPERTIES GENERATED TRUE COMPILE_FLAGS "-Wno-unused-function -Wno-sign-compare")
-ENDIF (WIN32)
+bison_generate(mcParser mc) 
 
-ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mcScanner.cc
-    COMMAND ${FLEX}
-    ARGS    -Pmc -omcScanner.cc ${CMAKE_CURRENT_SOURCE_DIR}/mcScanner.l
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/mcParser.hh ${CMAKE_CURRENT_SOURCE_DIR}/mcScanner.l
-		    mcTest.hh EquationObject.hh UserFunc.hh
-)
+install(TARGETS symdiff LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mcParser.cc ${CMAKE_CURRENT_BINARY_DIR}/mcParser.hh
-    COMMAND ${BISON}
-    ARGS -pmc --debug -v -d -o mcParser.cc ${CMAKE_CURRENT_SOURCE_DIR}/mcParser.y
-    # these must be read from parser.y
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mcParser.y EquationObject.hh UserFunc.hh mcTest.hh mcModelCompiler.hh mcModel.hh
-)
-
-GET_TARGET_PROPERTY(SYMDIFF_NAME symdiff LOCATION)
-ADD_CUSTOM_COMMAND(TARGET symdiff
-          POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_LIBRARY_DIR}
-          COMMAND ${CMAKE_COMMAND} -E copy ${SYMDIFF_NAME} ${PROJECT_LIBRARY_DIR}/.
-          COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_INCLUDE_DIR}
-          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/import.hh ${PROJECT_INCLUDE_DIR}/.
-          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/EngineAPI.hh ${PROJECT_INCLUDE_DIR}/.
-          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/parseexpr.hh ${PROJECT_INCLUDE_DIR}/.
-)
-GET_TARGET_PROPERTY(SYMDIFF_STATIC_NAME symdiff_static LOCATION)
-ADD_CUSTOM_COMMAND(TARGET symdiff_static
-          POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_LIBRARY_DIR}
-          COMMAND ${CMAKE_COMMAND} -E copy ${SYMDIFF_STATIC_NAME} ${PROJECT_LIBRARY_DIR}/.
-)
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-SET_TARGET_PROPERTIES(symdiff PROPERTIES INSTALL_RPATH "\$ORIGIN/")
-ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-#IF (APPLE)
-#SET_TARGET_PROPERTIES(symdiff PROPERTIES INSTALL_RPATH "@loader_path/")
-#ENDIF (APPLE)
-
-
+#install generated headers
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mcParser.hh DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/symdiff)
