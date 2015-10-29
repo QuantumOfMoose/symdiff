@@ -37,11 +37,15 @@ INCLUDE_DIRECTORIES (
 )
 
 ADD_LIBRARY(symdiff SHARED ${CXX_SRCS} ${MC_SRCS})
-ADD_LIBRARY(symdiff_static STATIC ${CXX_SRCS} ${MC_SRCS})
+#ADD_LIBRARY(symdiff_static STATIC ${CXX_SRCS} ${MC_SRCS})
+
+
 
 flex_generate(mcScanner "${CMAKE_CURRENT_BINARY_DIR}/mcParser.hh;mcTest.hh;EquationObject.hh;UserFunc.hh" mc)
 
 bison_generate(mcParser mc) 
+
+set_target_properties(symdiff PROPERTIES SOVERSION ${SOVERSION})
 
 install(TARGETS symdiff LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
