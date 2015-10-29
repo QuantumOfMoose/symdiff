@@ -4,7 +4,9 @@ PROJECT (SYMDIFF)
 include(GNUInstallDirs)
 include(generate.cmake)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+
 
 SET (SUBDIRS
     src
@@ -18,6 +20,10 @@ set(SOVERSION 0)
 ADD_DEFINITIONS(-DSYMDIFF_VERSION_STRING="\\"0.00\\""  -DSYMDIFF_COPYRIGHT_YEAR="\\"2010\\"")
 
 
+#c++11 support - newer cmake can do this more elegantly
+add_compile_options(-std=c++11)
+
+
 
 set(PROJECT_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(PROJECT_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
@@ -27,7 +33,7 @@ set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 find_package(PythonLibs REQUIRED)
 find_package(TCL REQUIRED)
-
+find_package(TclStub REQUIRED)
 
 find_program(FLEX flex)
 find_program(BISON bison)
@@ -62,7 +68,9 @@ FOREACH (SUB ${SUBDIRS})
 ENDFOREACH (SUB ${SUBDIRS})
 
 #pre-written headers
-install(FILES include/EngineAPI.hh include/import.hh include/parseexpr.hh
+set(HEADERS ${CMAKE_SOURCE_DIR}/src/engine/EngineAPI.hh ${CMAKE_SOURCE_DIR}/src/engine/parseexpr.hh   ${CMAKE_SOURCE_DIR}/src/engine/import.hh)
+
+install(FILES ${HEADERS}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/symdiff)
 
 
